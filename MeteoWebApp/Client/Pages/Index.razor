@@ -1,0 +1,123 @@
+﻿@page "/"
+@using Newtonsoft.Json;
+@inject HttpClient client
+
+<PageTitle>Weather App</PageTitle>
+
+<h1>Weather Data</h1>
+
+<select name="option" @onchange="HandleOptionChange">
+    <option value="Ainazi">Ainaži</option>
+    <option value="Aluksne">Alūksne</option>
+    <option value="Bauska">Bauska</option>
+    <option value="Dagda">Dagda</option>
+    <option value="Daugavpils">Daugavpils</option>
+    <option value="Dobele">Dobele</option>
+    <option value="Gulbene">Gulbene</option>
+    <option value="Jelgava">Jelgava</option>
+    <option value="Kolka">Kolka</option>
+    <option value="Liepaja">Liepāja</option>
+    <option value="Madona">Madona</option>
+    <option value="Mersrags">Mērsrags</option>
+    <option value="Pavilosta">Pāvilosta</option>
+    <option value="Priekuli">Priekuļi</option>
+    <option value="Rezekne">Rēzekne</option>
+    <option value="Riga" selected>Rīga</option>
+    <option value="Rucava">Rucava</option>
+    <option value="Rujiena">Rūjiena</option>
+    <option value="Saldus">Saldus</option>
+    <option value="Skriveri">Skrīveri</option>
+    <option value="Skulte">Skulte</option>
+    <option value="Stende">Stende</option>
+    <option value="Ventspils">Ventspils</option>
+    <option value="Zilani">Zīlāni</option>
+    <option value="Zoseni">Zosēni</option>
+</select>
+
+
+
+
+<br />
+@temperature
+
+@code {
+    string temperature = "Loading..";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWeatherData("RIGASLU"); // Fetch initial default weather data
+    }
+
+    private Dictionary<string, string> options = new Dictionary<string, string>()
+    {
+        { "Ainazi", "RIAI99PA" },
+        { "Aluksne", "RIAL99MS" },
+        { "Bauska", "RIBA99PA" },
+        { "Dagda", "RIDAGDA" },
+        { "Daugavpils", "RIDM99MS" },
+        { "Dobele", "RIDO99MS" },
+        { "Gulbene", "RIGU99MS" },
+        { "Jelgava", "RIJE99PA" },
+        { "Kolka", "RIKO99PA" },
+        { "Liepaja", "RILP99PA" },
+        { "Madona", "RIMADONA" },
+        { "Mersrags", "RIME99MS" },
+        { "Pavilosta", "RIPA99PA" },
+        { "Priekuli", "RIPR99PA" },
+        { "Rezekne", "RIREZEKN" },
+        { "Riga", "RIGASLU" },
+        { "Rucava", "RUCAVA" },
+        { "Rujiena", "RIRU99PA" },
+        { "Saldus", "RISA99PA" },
+        { "Skriveri", "RISI99PA" },
+        { "Skulte", "RISE99MS" },
+        { "Stende", "RIST99PA" },
+        { "Ventspils", "RIVE99PA" },
+        { "Zilani", "RIZI99PA" },
+        { "Zoseni", "RIZO99MS" }
+    };
+
+    private async Task GetWeatherData(string stationId)
+    {
+        const string tempAbbreviation = "TDRY";
+
+        try
+        {
+            var escapedStationId = Uri.EscapeUriString(stationId);
+
+            var response = await client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
+            response.EnsureSuccessStatusCode();
+
+            var weatherData = await response.Content.ReadAsStringAsync();
+
+            var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
+            var records = weather.result.records;
+
+            foreach (var record in records)
+            {
+                if (record.ABBREVIATION == tempAbbreviation)
+                {
+                    temperature = "Temperature: " + record.VALUE.ToString() + "°C";
+                    break;
+                }
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (HttpRequestException ex)
+        {
+            // Handle the exception, display an error message to the user
+            temperature = "Error retrieving weather data: " + ex.Message;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+
+    private async Task HandleOptionChange(ChangeEventArgs e)
+    {
+        var selectedValue = e.Value.ToString();
+        if (options.ContainsKey(selectedValue))
+        {
+            await GetWeatherData(options[selectedValue]);
+        }
+    }    
+}
