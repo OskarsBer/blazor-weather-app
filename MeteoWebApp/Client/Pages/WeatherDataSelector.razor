@@ -1,0 +1,71 @@
+﻿<select name="option" @onchange="HandleOptionChange">
+    <option value="Ainazi">Ainaži</option>
+    <option value="Aluksne">Alūksne</option>
+    <option value="Bauska">Bauska</option>
+    <option value="Dagda">Dagda</option>
+    <option value="Daugavpils">Daugavpils</option>
+    <option value="Dobele">Dobele</option>
+    <option value="Gulbene">Gulbene</option>
+    <option value="Jelgava">Jelgava</option>
+    <option value="Kolka">Kolka</option>
+    <option value="Liepaja">Liepāja</option>
+    <option value="Madona">Madona</option>
+    <option value="Mersrags">Mērsrags</option>
+    <option value="Pavilosta">Pāvilosta</option>
+    <option value="Priekuli">Priekuļi</option>
+    <option value="Rezekne">Rēzekne</option>
+    <option value="Riga" selected>Rīga</option>
+    <option value="Rucava">Rucava</option>
+    <option value="Rujiena">Rūjiena</option>
+    <option value="Saldus">Saldus</option>
+    <option value="Skriveri">Skrīveri</option>
+    <option value="Skulte">Skulte</option>
+    <option value="Stende">Stende</option>
+    <option value="Ventspils">Ventspils</option>
+    <option value="Zilani">Zīlāni</option>
+    <option value="Zoseni">Zosēni</option>
+</select>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnSelectionChanged { get; set; }
+
+    private Dictionary<string, string> options = new Dictionary<string, string>()
+    {
+        { "Ainazi", "RIAI99PA" },
+        { "Aluksne", "RIAL99MS" },
+        { "Bauska", "RIBA99PA" },
+        { "Dagda", "RIDAGDA" },
+        { "Daugavpils", "RIDM99MS" },
+        { "Dobele", "RIDO99MS" },
+        { "Gulbene", "RIGU99MS" },
+        { "Jelgava", "RIJE99PA" },
+        { "Kolka", "RIKO99PA" },
+        { "Liepaja", "RILP99PA" },
+        { "Madona", "RIMADONA" },
+        { "Mersrags", "RIME99MS" },
+        { "Pavilosta", "RIPA99PA" },
+        { "Priekuli", "RIPR99PA" },
+        { "Rezekne", "RIREZEKN" },
+        { "Riga", "RIGASLU" },
+        { "Rucava", "RUCAVA" },
+        { "Rujiena", "RIRU99PA" },
+        { "Saldus", "RISA99PA" },
+        { "Skriveri", "RISI99PA" },
+        { "Skulte", "RISE99MS" },
+        { "Stende", "RIST99PA" },
+        { "Ventspils", "RIVE99PA" },
+        { "Zilani", "RIZI99PA" },
+        { "Zoseni", "RIZO99MS" }
+    };
+
+    private async Task HandleOptionChange(ChangeEventArgs e)
+    {
+        var selectedValue = e.Value.ToString();
+        if (options.ContainsKey(selectedValue))
+        {
+            var stationId = options[selectedValue];
+            await OnSelectionChanged.InvokeAsync(stationId);
+        }
+    }
+}

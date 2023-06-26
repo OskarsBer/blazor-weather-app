@@ -1,0 +1,49 @@
+﻿@using Newtonsoft.Json;
+
+<p>@temperature</p>
+
+@code {
+    string temperature = "Loading..";
+    string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetWeatherData("RIGASLU"); // Fetch initial default weather data
+    }
+
+    [Inject]
+    private HttpClient Client { get; set; }
+
+    public async Task GetWeatherData(string stationId)
+    {
+        const string tempAbbreviation = "TDRY";
+
+        try
+        {
+            var escapedStationId = Uri.EscapeUriString(stationId);
+
+            var response = await Client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
+            response.EnsureSuccessStatusCode();
+
+            var weatherData = await response.Content.ReadAsStringAsync();
+
+            var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
+            var records = weather.result.records;
+            
+            foreach (var record in records)
+            {
+                if (record.ABBREVIATION == tempAbbreviation)
+                {
+                    temperature = "Temperature: " + record.VALUE.ToString() + "°C";
+                    
+                }
+            }
+            // Invoke StateHasChanged to trigger a re-render and display the updated temperature
+            StateHasChanged();
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ex.Message;
+        }
+    }
+}
