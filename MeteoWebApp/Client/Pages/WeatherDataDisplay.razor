@@ -1,51 +1,35 @@
-﻿@using Newtonsoft.Json;
-@inject HttpClient Client
+﻿@inject ILocalStorageService localStorage
+
+<WeatherData @ref="weatherData" />
 
 <p>@temperature</p>
 
 @code {
+    WeatherData? weatherData;
     string temperature = "Loading..";
-    string errorMessage = "";
 
-    protected override async Task OnInitializedAsync()
+    private string? selectedOption;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await GetWeatherData("RIGASLU"); // Fetch initial default weather data
+        if (firstRender)
+        {
+            selectedOption = await localStorage.GetItemAsync<string>("selectedOption");
+
+            if (String.IsNullOrEmpty(selectedOption))
+            {
+                selectedOption = "RIAI99PA";
+            }
+            await GetWeatherData(selectedOption); // Fetch initial weather data
+        }
     }
 
     public async Task GetWeatherData(string stationId)
     {
-        const string tempAbbreviation = "TDRY";
-
-        try
+        if (weatherData != null)
         {
-            var escapedStationId = Uri.EscapeDataString(stationId);
-
-            var response = await Client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
-            response.EnsureSuccessStatusCode();
-
-            var weatherData = await response.Content.ReadAsStringAsync();
-
-            var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
-            var records = weather?.result.records;
-            
-
-            if (records != null)
-            {
-                foreach (var record in records)
-                {
-                    if (record.ABBREVIATION == tempAbbreviation)
-                    {
-                        temperature = "Temperature: " + record.VALUE.ToString() + "°C";
-                    
-                    }
-                }
-            }
-            // Invoke StateHasChanged to trigger a re-render and display the updated temperature
+            temperature = await weatherData.GetWeatherData(stationId);
             StateHasChanged();
-        }
-        catch (HttpRequestException ex)
-        {
-            errorMessage = ex.Message;
         }
     }
 }

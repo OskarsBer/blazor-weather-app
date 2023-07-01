@@ -1,71 +1,95 @@
-﻿<select name="option" @onchange="HandleOptionChange">
-    <option value="Ainazi">Ainaži</option>
-    <option value="Aluksne">Alūksne</option>
-    <option value="Bauska">Bauska</option>
-    <option value="Dagda">Dagda</option>
-    <option value="Daugavpils">Daugavpils</option>
-    <option value="Dobele">Dobele</option>
-    <option value="Gulbene">Gulbene</option>
-    <option value="Jelgava">Jelgava</option>
-    <option value="Kolka">Kolka</option>
-    <option value="Liepaja">Liepāja</option>
-    <option value="Madona">Madona</option>
-    <option value="Mersrags">Mērsrags</option>
-    <option value="Pavilosta">Pāvilosta</option>
-    <option value="Priekuli">Priekuļi</option>
-    <option value="Rezekne">Rēzekne</option>
-    <option value="Riga" selected>Rīga</option>
-    <option value="Rucava">Rucava</option>
-    <option value="Rujiena">Rūjiena</option>
-    <option value="Saldus">Saldus</option>
-    <option value="Skriveri">Skrīveri</option>
-    <option value="Skulte">Skulte</option>
-    <option value="Stende">Stende</option>
-    <option value="Ventspils">Ventspils</option>
-    <option value="Zilani">Zīlāni</option>
-    <option value="Zoseni">Zosēni</option>
+﻿@inject ILocalStorageService localStorage
+
+<select name="option" @onchange="HandleOptionChange">
+    @foreach (var option in options)
+    {
+        <option value="@option.StationId" selected="@IsSelected(option.StationId)">@option.DisplayName</option>
+    }
 </select>
 
 @code {
     [Parameter]
     public EventCallback<string> OnSelectionChanged { get; set; }
 
-    private Dictionary<string, string> options = new Dictionary<string, string>()
+    string? selectedOption;
+
+    private async Task GetStoredOption()
     {
-        { "Ainazi", "RIAI99PA" },
-        { "Aluksne", "RIAL99MS" },
-        { "Bauska", "RIBA99PA" },
-        { "Dagda", "RIDAGDA" },
-        { "Daugavpils", "RIDM99MS" },
-        { "Dobele", "RIDO99MS" },
-        { "Gulbene", "RIGU99MS" },
-        { "Jelgava", "RIJE99PA" },
-        { "Kolka", "RIKO99PA" },
-        { "Liepaja", "RILP99PA" },
-        { "Madona", "RIMADONA" },
-        { "Mersrags", "RIME99MS" },
-        { "Pavilosta", "RIPA99PA" },
-        { "Priekuli", "RIPR99PA" },
-        { "Rezekne", "RIREZEKN" },
-        { "Riga", "RIGASLU" },
-        { "Rucava", "RUCAVA" },
-        { "Rujiena", "RIRU99PA" },
-        { "Saldus", "RISA99PA" },
-        { "Skriveri", "RISI99PA" },
-        { "Skulte", "RISE99MS" },
-        { "Stende", "RIST99PA" },
-        { "Ventspils", "RIVE99PA" },
-        { "Zilani", "RIZI99PA" },
-        { "Zoseni", "RIZO99MS" }
+        string? storedOption;
+
+        storedOption = await localStorage.GetItemAsync<string>("selectedOption");
+        if (String.IsNullOrEmpty(storedOption))
+        {
+            selectedOption = "RIAI99PA";
+        }
+        selectedOption = storedOption;
+    }
+
+    private bool IsSelected(string stationId)
+    {
+      return stationId == selectedOption;
+    }
+
+    private List<WeatherOption> options = new List<WeatherOption>()
+    {
+        new WeatherOption("Ainaži", "RIAI99PA"),
+        new WeatherOption("Alūksne", "RIAL99MS"),
+        new WeatherOption("Bauska", "RIBA99PA"),
+        new WeatherOption("Dagda", "RIDAGDA"),
+        new WeatherOption("Daugavpils", "RIDM99MS"),
+        new WeatherOption("Dobele", "RIDO99MS"),
+        new WeatherOption("Gulbene", "RIGU99MS"),
+        new WeatherOption("Jelgava", "RIJE99PA"),
+        new WeatherOption("Kolka", "RIKO99PA"),
+        new WeatherOption("Liepāja", "RILP99PA"),
+        new WeatherOption("Madona", "RIMADONA"),
+        new WeatherOption("Mērsrags", "RIME99MS"),
+        new WeatherOption("Pāvilosta", "RIPA99PA"),
+        new WeatherOption("Priekuļi", "RIPR99PA"),
+        new WeatherOption("Rēzekne", "RIREZEKN"),
+        new WeatherOption("Rīga", "RIGASLU"),
+        new WeatherOption("Rucava", "RUCAVA"),
+        new WeatherOption("Rūjiena", "RIRU99PA"),
+        new WeatherOption("Saldus", "RISA99PA"),
+        new WeatherOption("Skrīveri", "RISI99PA"),
+        new WeatherOption("Skulte", "RISE99MS"),
+        new WeatherOption("Stende", "RIST99PA"),
+        new WeatherOption("Ventspils", "RIVE99PA"),
+        new WeatherOption("Zīlani", "RIZI99PA"),
+        new WeatherOption("Zosēni", "RIZO99MS")
     };
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedOption = await localStorage.GetItemAsync<string>("selectedOption");
+        if (!String.IsNullOrEmpty(selectedOption))
+        {
+            await OnSelectionChanged.InvokeAsync(selectedOption);
+        }
+    }
 
     private async Task HandleOptionChange(ChangeEventArgs e)
     {
         var selectedValue = e.Value?.ToString();
-        if (!string.IsNullOrEmpty(selectedValue) && options.ContainsKey(selectedValue))
+        var selectedOption = options.FirstOrDefault(o => o.StationId == selectedValue);
+        
+
+        if (selectedOption != null)
         {
-            var stationId = options[selectedValue];
-            await OnSelectionChanged.InvokeAsync(stationId);
+            await localStorage.SetItemAsync("selectedOption", selectedOption.StationId);
+            await OnSelectionChanged.InvokeAsync(selectedOption.StationId);
         }
+    }
+
+    public class WeatherOption
+    {
+        public WeatherOption(string displayName, string stationId)
+        {
+            DisplayName = displayName;
+            StationId = stationId;
+        }
+
+        public string DisplayName { get; set; }
+        public string StationId { get; set; }
     }
 }
