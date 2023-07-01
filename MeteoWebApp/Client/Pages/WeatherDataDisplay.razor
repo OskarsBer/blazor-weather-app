@@ -12,7 +12,7 @@
     }
 
     [Inject]
-    private HttpClient Client { get; set; }
+    private HttpClient Client { get; set; } = null!;
 
     public async Task GetWeatherData(string stationId)
     {
@@ -20,7 +20,7 @@
 
         try
         {
-            var escapedStationId = Uri.EscapeUriString(stationId);
+            var escapedStationId = Uri.EscapeDataString(stationId);
 
             var response = await Client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
             response.EnsureSuccessStatusCode();
@@ -28,14 +28,18 @@
             var weatherData = await response.Content.ReadAsStringAsync();
 
             var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
-            var records = weather.result.records;
+            var records = weather?.result.records;
             
-            foreach (var record in records)
+
+            if (records != null)
             {
-                if (record.ABBREVIATION == tempAbbreviation)
+                foreach (var record in records)
                 {
-                    temperature = "Temperature: " + record.VALUE.ToString() + "°C";
+                    if (record.ABBREVIATION == tempAbbreviation)
+                    {
+                        temperature = "Temperature: " + record.VALUE.ToString() + "°C";
                     
+                    }
                 }
             }
             // Invoke StateHasChanged to trigger a re-render and display the updated temperature

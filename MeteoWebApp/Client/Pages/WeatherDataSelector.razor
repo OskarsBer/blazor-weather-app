@@ -61,8 +61,8 @@
 
     private async Task HandleOptionChange(ChangeEventArgs e)
     {
-        var selectedValue = e.Value.ToString();
-        if (options.ContainsKey(selectedValue))
+        var selectedValue = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(selectedValue) && options.ContainsKey(selectedValue))
         {
             var stationId = options[selectedValue];
             await OnSelectionChanged.InvokeAsync(stationId);

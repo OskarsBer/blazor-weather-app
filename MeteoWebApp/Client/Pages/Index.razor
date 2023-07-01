@@ -13,11 +13,14 @@
 <WeatherDataDisplay @ref="weatherDataDisplay" />
 
 @code {
-    WeatherDataSelector weatherDataSelector;
-    WeatherDataDisplay weatherDataDisplay;
+    WeatherDataSelector? weatherDataSelector;
+    WeatherDataDisplay? weatherDataDisplay;
 
     private async Task HandleSelectionChanged(string stationId)
     {
-        await weatherDataDisplay.GetWeatherData(stationId);
+        if (weatherDataDisplay != null)
+        {
+            await weatherDataDisplay.GetWeatherData(stationId);
+        }
     }
 }
