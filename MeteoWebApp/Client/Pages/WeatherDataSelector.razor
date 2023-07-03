@@ -9,13 +9,15 @@
 
 @code {
     [Parameter]
-    public EventCallback<string> OnSelectionChanged { get; set; }
+    public EventCallback<WeatherOption> OnSelectionChanged { get; set; }
 
-    private string selectedOption = "RIAI99PA"; // default value
+    private string selectedOption = string.Empty; 
+    private string selectedOptionName = string.Empty;
 
     private async Task GetStoredOption()
     {
         selectedOption = await localStorage.GetItemAsync<string>("selectedOption") ?? selectedOption;
+        selectedOptionName = await localStorage.GetItemAsync<string>("selectedOptionName") ?? selectedOptionName;
     }
 
     private bool IsSelected(string stationId)
@@ -48,36 +50,26 @@
         new WeatherOption("Skulte", "RISE99MS"),
         new WeatherOption("Stende", "RIST99PA"),
         new WeatherOption("Ventspils", "RIVE99PA"),
-        new WeatherOption("Zīlani", "RIZI99PA"),
+        new WeatherOption("Zīlāni", "RIZI99PA"),
         new WeatherOption("Zosēni", "RIZO99MS")
     };
 
     protected override async Task OnInitializedAsync()
     {
-        await GetStoredOption();
-        await OnSelectionChanged.InvokeAsync(selectedOption);
+        await GetStoredOption();  
+        await OnSelectionChanged.InvokeAsync(new WeatherOption(selectedOptionName, selectedOption));
     }
 
     private async Task HandleOptionChange(ChangeEventArgs e)
     {        
         var selectedValue = e.Value?.ToString();
-        var selectedOption = options.FirstOrDefault(o => o.StationId == selectedValue);        
-
+        var selectedOption = options.FirstOrDefault(o => o.StationId == selectedValue);  
+        
         if (selectedOption != null)
         {            
             await localStorage.SetItemAsync("selectedOption", selectedOption.StationId);
-            await OnSelectionChanged.InvokeAsync(selectedOption.StationId);
+            await localStorage.SetItemAsync("selectedOptionName", selectedOption.DisplayName);
+            await OnSelectionChanged.InvokeAsync(selectedOption);
         }
-    }
-
-    public class WeatherOption
-    {
-        public WeatherOption(string displayName, string stationId)
-        {
-            DisplayName = displayName;
-            StationId = stationId;
-        }
-        public string DisplayName { get; set; }
-        public string StationId { get; set; }
-    }
+    }    
 }

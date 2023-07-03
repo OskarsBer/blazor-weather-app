@@ -4,26 +4,31 @@
 
 <p>@temperature</p>
 <p>@humidity</p>
-<p>@windSpeed</p>
+<p>@windSpeed (Max: @windShear)</p>
 <p>@precipitation</p>
+<p>@uviIndex</p>
 
 @code {
     WeatherData? weatherData;
     string temperature = "Loading..";
     string humidity = "Loading..";
     string windSpeed = "Loading..";
+    string windShear = "Loading..";
     string precipitation = "Loading..";
+    string uviIndex = "Loading..";
     private string? selectedOption;
 
-    public async Task GetWeatherData(string stationId)
+    public async Task GetWeatherData(string stationId, string displayName)
     {
         if (weatherData != null)
         {
-            var (temp, hum, ws, prec) = await weatherData.GetWeatherData(stationId);
+            var (temp, hum, ws, wsh, prec, uvi) = await weatherData.GetWeatherData(stationId, displayName);
             temperature = temp;
             humidity = hum;
             windSpeed = ws;
+            windShear = wsh;
             precipitation = prec;
+            uviIndex = uvi;
             StateHasChanged();
         }
     }

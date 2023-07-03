@@ -15,13 +15,13 @@
     WeatherDataSelector? weatherDataSelector;
     WeatherDataDisplay? weatherDataDisplay;
 
-    private async Task HandleSelectionChanged(string stationId)
+    private async Task HandleSelectionChanged(WeatherOption selectedOption)
     {
         if (weatherDataDisplay != null)
         {
             try
             {                
-                await weatherDataDisplay.GetWeatherData(stationId);
+                await weatherDataDisplay.GetWeatherData(selectedOption.StationId, selectedOption.DisplayName);
             }
             catch (Exception ex)
             {             

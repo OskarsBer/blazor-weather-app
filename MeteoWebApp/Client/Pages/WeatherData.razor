@@ -2,27 +2,36 @@
 @inject HttpClient client
 
 @code {
-    public async Task<(string temperature, string humidity, string windSpeed, string precipitation)> GetWeatherData(string stationId)
+    public async Task<(string temperature, string humidity, string windSpeed, string windShear, string precipitation, string uviIndex)> GetWeatherData(string stationId, string displayName)
     {
         const string tempAbbreviation = "TDRY";
         const string humidityAbbreviation = "RLH";
         const string windSpeedAbbreviation = "WNS10";
-        const string precipitationAbbreviation = "HPRAB";
+        const string windShearAbbreviation = "HWSMX";
+        const string precipitationAbbreviation = "HPRAB";        
+        string currentHour = DateTime.Now.ToString("HH");
         string temperature = "Loading..";
         string humidity = "Loading..";
         string windSpeed = "Loading..";
+        string windShear = "Loading..";
         string precipitation = "Loading..";
+        string uviIndex = "Loading..";
 
         try
         {
             var escapedStationId = Uri.EscapeDataString(stationId);
-
+            
             var response = await client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
             response.EnsureSuccessStatusCode();
 
-            var weatherData = await response.Content.ReadAsStringAsync();
+            var responseUVI = await client.GetAsync($"https://videscentrs.lvgmc.lv/data/weather_forecast_for_location_hourly?nosaukums={displayName}");
+            response.EnsureSuccessStatusCode();
 
+            var weatherData = await response.Content.ReadAsStringAsync();
             var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
+            var uviData = await responseUVI.Content.ReadAsStringAsync();
+            var uvi = JsonConvert.DeserializeObject<dynamic>(uviData);
+
             var records = weather?.result.records;
 
             if (records != null)
@@ -41,9 +50,27 @@
                     {
                         windSpeed = "Wind Speed: " + record.VALUE.ToString() + "m/s";
                     }
+                    else if (record.ABBREVIATION == windShearAbbreviation)
+                    {
+                        windShear = record.VALUE.ToString() + "m/s";
+                    }
                     else if (record.ABBREVIATION == precipitationAbbreviation)
                     {
                         precipitation = "Precipitation (last hour): " + record.VALUE.ToString() + "mm";
+                    }
+                }
+            }                               
+
+            if (uvi != null)
+            {
+                foreach (var record in uvi)
+                {
+                    var recordHour = record["laiks"].ToString().Substring(8, 2);
+                    var uviValue = record["uvi_indekss"].ToString();
+                    if (uviValue != "null" && recordHour == currentHour)
+                    {
+                        uviIndex = "UVI: " + uviValue;
+                        break;
                     }
                 }
             }
@@ -52,7 +79,7 @@
         {
             temperature = "Error retrieving weather data: " + ex.Message;
         }
-        return (temperature, humidity, windSpeed, precipitation);
+        return (temperature, humidity, windSpeed, windShear, precipitation, uviIndex);
     }    
 }
 
