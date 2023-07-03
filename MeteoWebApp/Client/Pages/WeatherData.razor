@@ -2,40 +2,57 @@
 @inject HttpClient client
 
 @code {
-        public async Task<string> GetWeatherData(string stationId)
+    public async Task<(string temperature, string humidity, string windSpeed, string precipitation)> GetWeatherData(string stationId)
+    {
+        const string tempAbbreviation = "TDRY";
+        const string humidityAbbreviation = "RLH";
+        const string windSpeedAbbreviation = "WNS10";
+        const string precipitationAbbreviation = "HPRAB";
+        string temperature = "Loading..";
+        string humidity = "Loading..";
+        string windSpeed = "Loading..";
+        string precipitation = "Loading..";
+
+        try
         {
-            const string tempAbbreviation = "TDRY";
-            string temperature = "Loading..";
+            var escapedStationId = Uri.EscapeDataString(stationId);
 
-            try
+            var response = await client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
+            response.EnsureSuccessStatusCode();
+
+            var weatherData = await response.Content.ReadAsStringAsync();
+
+            var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
+            var records = weather?.result.records;
+
+            if (records != null)
             {
-                var escapedStationId = Uri.EscapeDataString(stationId);
-
-                var response = await client.GetAsync($"https://data.gov.lv/dati/api/3/action/datastore_search?q={escapedStationId}&resource_id=17460efb-ae99-4d1d-8144-1068f184b05f");
-                response.EnsureSuccessStatusCode();
-
-                var weatherData = await response.Content.ReadAsStringAsync();
-
-                var weather = JsonConvert.DeserializeObject<dynamic>(weatherData);
-                var records = weather?.result.records;
-
-                if (records != null)
+                foreach (var record in records)
                 {
-                    foreach (var record in records)
+                    if (record.ABBREVIATION == tempAbbreviation)
                     {
-                        if (record.ABBREVIATION == tempAbbreviation)
-                        {
-                            temperature = "Temperature: " + record.VALUE.ToString() + "°C";
-                            break;
-                        }
+                        temperature = "Temperature: " + record.VALUE.ToString() + "°C";
+                    }
+                    else if (record.ABBREVIATION == humidityAbbreviation)
+                    {
+                        humidity = "Humidity: " + record.VALUE.ToString() + "%";
+                    }
+                    else if (record.ABBREVIATION == windSpeedAbbreviation)
+                    {
+                        windSpeed = "Wind Speed: " + record.VALUE.ToString() + "m/s";
+                    }
+                    else if (record.ABBREVIATION == precipitationAbbreviation)
+                    {
+                        precipitation = "Precipitation (last hour): " + record.VALUE.ToString() + "mm";
                     }
                 }
             }
-            catch (HttpRequestException ex)
-            {
-                temperature = "Error retrieving weather data: " + ex.Message;
-            }
-            return temperature;
-        }    
+        }
+        catch (HttpRequestException ex)
+        {
+            temperature = "Error retrieving weather data: " + ex.Message;
+        }
+        return (temperature, humidity, windSpeed, precipitation);
+    }    
 }
 

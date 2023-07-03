@@ -67,8 +67,6 @@
         {            
             await localStorage.SetItemAsync("selectedOption", selectedOption.StationId);
             await OnSelectionChanged.InvokeAsync(selectedOption.StationId);
-
-            Console.WriteLine($"HandleOptionChange called: InvokeAsync {selectedOption.StationId}");
         }
     }
 
