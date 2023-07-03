@@ -33,7 +33,6 @@
             }
             catch (HttpRequestException ex)
             {
-                // Handle the error
                 temperature = "Error retrieving weather data: " + ex.Message;
             }
             return temperature;

@@ -11,18 +11,11 @@
     [Parameter]
     public EventCallback<string> OnSelectionChanged { get; set; }
 
-    string? selectedOption;
+    private string selectedOption = "RIAI99PA"; // default value
 
     private async Task GetStoredOption()
     {
-        string? storedOption;
-
-        storedOption = await localStorage.GetItemAsync<string>("selectedOption");
-        if (String.IsNullOrEmpty(storedOption))
-        {
-            selectedOption = "RIAI99PA";
-        }
-        selectedOption = storedOption;
+        selectedOption = await localStorage.GetItemAsync<string>("selectedOption") ?? selectedOption;
     }
 
     private bool IsSelected(string stationId)
@@ -61,23 +54,21 @@
 
     protected override async Task OnInitializedAsync()
     {
-        selectedOption = await localStorage.GetItemAsync<string>("selectedOption");
-        if (!String.IsNullOrEmpty(selectedOption))
-        {
-            await OnSelectionChanged.InvokeAsync(selectedOption);
-        }
+        await GetStoredOption();
+        await OnSelectionChanged.InvokeAsync(selectedOption);
     }
 
     private async Task HandleOptionChange(ChangeEventArgs e)
-    {
+    {        
         var selectedValue = e.Value?.ToString();
-        var selectedOption = options.FirstOrDefault(o => o.StationId == selectedValue);
-        
+        var selectedOption = options.FirstOrDefault(o => o.StationId == selectedValue);        
 
         if (selectedOption != null)
-        {
+        {            
             await localStorage.SetItemAsync("selectedOption", selectedOption.StationId);
             await OnSelectionChanged.InvokeAsync(selectedOption.StationId);
+
+            Console.WriteLine($"HandleOptionChange called: InvokeAsync {selectedOption.StationId}");
         }
     }
 
@@ -88,7 +79,6 @@
             DisplayName = displayName;
             StationId = stationId;
         }
-
         public string DisplayName { get; set; }
         public string StationId { get; set; }
     }

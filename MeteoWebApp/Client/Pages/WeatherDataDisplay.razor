@@ -7,22 +7,7 @@
 @code {
     WeatherData? weatherData;
     string temperature = "Loading..";
-
     private string? selectedOption;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            selectedOption = await localStorage.GetItemAsync<string>("selectedOption");
-
-            if (String.IsNullOrEmpty(selectedOption))
-            {
-                selectedOption = "RIAI99PA";
-            }
-            await GetWeatherData(selectedOption); // Fetch initial weather data
-        }
-    }
 
     public async Task GetWeatherData(string stationId)
     {
@@ -33,3 +18,4 @@
         }
     }
 }
+

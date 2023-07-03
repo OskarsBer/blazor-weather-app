@@ -18,7 +18,14 @@
     {
         if (weatherDataDisplay != null)
         {
-            await weatherDataDisplay.GetWeatherData(stationId);
+            try
+            {                
+                await weatherDataDisplay.GetWeatherData(stationId);
+            }
+            catch (Exception ex)
+            {             
+                Console.WriteLine($"Error retrieving weather data: {ex.Message}");
+            }
         }
     }
 }
