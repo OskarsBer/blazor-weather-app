@@ -42,28 +42,31 @@
             {
                 foreach (var record in records)
                 {
-                    if (record.ABBREVIATION == Abbreviations.TempAbbr)
+                    var abbreviation = record.ABBREVIATION.ToString();
+                    var value = record.VALUE.ToString();
+
+                    switch (abbreviation)
                     {
-                        temperature = "Temperature: " + record.VALUE.ToString() + "°C";
-                    }
-                    else if (record.ABBREVIATION == Abbreviations.HumidityAbbr)
-                    {
-                        humidity = "Humidity: " + record.VALUE.ToString() + "%";
-                    }
-                    else if (record.ABBREVIATION == Abbreviations.WindSpeedAbbr)
-                    {
-                        windSpeed = "Wind Speed: " + record.VALUE.ToString() + "m/s";
-                    }
-                    else if (record.ABBREVIATION == Abbreviations.WindShearAbbr)
-                    {
-                        windShear = record.VALUE.ToString() + "m/s";
-                    }
-                    else if (record.ABBREVIATION == Abbreviations.PrecipitationAbbr)
-                    {
-                        precipitation = "Precipitation (last hour): " + record.VALUE.ToString() + "mm";
+                        case Abbreviations.TempAbbr:
+                            temperature = "Temperature: " + value + "°C";
+                            break;
+                        case Abbreviations.HumidityAbbr:
+                            humidity = "Humidity: " + value + "%";
+                            break;
+                        case Abbreviations.WindSpeedAbbr:
+                            windSpeed = "Wind Speed: " + value + "m/s";
+                            break;
+                        case Abbreviations.WindShearAbbr:
+                            windShear = value + "m/s";
+                            break;
+                        case Abbreviations.PrecipitationAbbr:
+                            precipitation = "Precipitation (last hour): " + value + "mm";
+                            break;
+                        default:                            
+                            break;
                     }
                 }
-            }                               
+            }
 
             if (uvi != null)
             {
