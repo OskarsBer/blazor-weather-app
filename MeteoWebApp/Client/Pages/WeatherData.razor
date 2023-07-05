@@ -2,13 +2,17 @@
 @inject HttpClient client
 
 @code {
-    public async Task<(string temperature, string humidity, string windSpeed, string windShear, string precipitation, string uviIndex)> GetWeatherData(string stationId, string displayName)
+    public class Abbreviations
     {
-        const string tempAbbreviation = "TDRY";
-        const string humidityAbbreviation = "RLH";
-        const string windSpeedAbbreviation = "WNS10";
-        const string windShearAbbreviation = "HWSMX";
-        const string precipitationAbbreviation = "HPRAB";        
+        public const string TempAbbr = "TDRY";
+        public const string HumidityAbbr = "RLH";
+        public const string WindSpeedAbbr = "WNS10";
+        public const string WindShearAbbr = "HWSMX";
+        public const string PrecipitationAbbr = "HPRAB";
+    }
+
+    public async Task<(string temperature, string humidity, string windSpeed, string windShear, string precipitation, string uviIndex)> GetWeatherData(string stationId, string displayName)
+    {       
         string currentHour = DateTime.Now.ToString("HH");
         string temperature = "Loading..";
         string humidity = "Loading..";
@@ -38,23 +42,23 @@
             {
                 foreach (var record in records)
                 {
-                    if (record.ABBREVIATION == tempAbbreviation)
+                    if (record.ABBREVIATION == Abbreviations.TempAbbr)
                     {
                         temperature = "Temperature: " + record.VALUE.ToString() + "°C";
                     }
-                    else if (record.ABBREVIATION == humidityAbbreviation)
+                    else if (record.ABBREVIATION == Abbreviations.HumidityAbbr)
                     {
                         humidity = "Humidity: " + record.VALUE.ToString() + "%";
                     }
-                    else if (record.ABBREVIATION == windSpeedAbbreviation)
+                    else if (record.ABBREVIATION == Abbreviations.WindSpeedAbbr)
                     {
                         windSpeed = "Wind Speed: " + record.VALUE.ToString() + "m/s";
                     }
-                    else if (record.ABBREVIATION == windShearAbbreviation)
+                    else if (record.ABBREVIATION == Abbreviations.WindShearAbbr)
                     {
                         windShear = record.VALUE.ToString() + "m/s";
                     }
-                    else if (record.ABBREVIATION == precipitationAbbreviation)
+                    else if (record.ABBREVIATION == Abbreviations.PrecipitationAbbr)
                     {
                         precipitation = "Precipitation (last hour): " + record.VALUE.ToString() + "mm";
                     }
